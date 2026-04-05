@@ -8,7 +8,7 @@
   <ItemGroup>
     <Reference Include="CounterStrikeSharp.API">
       <HintPath>
-        D:\proiecte\HelloWorldPlugin\counterstrikesharp-windows-1.0.364\addons\counterstrikesharp\api\CounterStrikeSharp.API.dll</HintPath>
+        counterstrikesharp-windows-1.0.364\addons\counterstrikesharp\api\CounterStrikeSharp.API.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>  

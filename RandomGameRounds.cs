@@ -8,8 +8,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace HelloWorldPlugin;
-public class HelloWorldPlugin : BasePlugin
+namespace RandomGameRounds;
+public class RandomGameRounds : BasePlugin
 {
     private const int DefaultGravity = 800;
     private const int LowGravityValue = 300;
@@ -171,13 +171,13 @@ public class HelloWorldPlugin : BasePlugin
         "Grip it properly!",
     };
 
-    public override string ModuleName => "Hello World Plugin";
+    public override string ModuleName => "Random Game Rounds";
 
     public override string ModuleVersion => "0.0.1";
 
     public override void Load(bool hotReload)
     {
-        Console.WriteLine("Hello World Plugin loaded.");
+        Console.WriteLine("Random Game Rounds loaded.");
 
         ApplyServerDefaults();
         AddTimer(2.0f, () =>
