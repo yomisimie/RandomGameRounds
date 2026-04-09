@@ -257,11 +257,24 @@ public class RandomGameRounds : BasePlugin
         RegisterListener<Listeners.OnPlayerTakeDamagePre>((player, damageInfo) =>
         {
             if (ActiveEffects.Contains(AbundentAmmoEffectName)) {
-                var weapon = attacker.PlayerPawn.Value?.WeaponServices?.ActiveWeapon.Value;
-                var reserveAmmo = weapon.ReserveAmmo;
-                for (var index = 0; index < reserveAmmo.Length; index++)
+                foreach (var weaponHandle in weaponServices.MyWeapons)
                 {
-                    reserveAmmo[index]++;
+                    var weapon = weaponHandle.Value;
+                    if (weapon == null || !weapon.IsValid)
+                    {
+                        continue;
+                    }
+                    try {
+                        var reserveAmmo = weapon.ReserveAmmo;
+                        for (var index = 0; index < reserveAmmo.Length; index++)
+                        {
+                            reserveAmmo[index]++;
+                        }
+
+                        Utilities.SetStateChanged(weapon.As<CCSWeaponBase>(), "CBasePlayerWeapon", "m_pReserveAmmo");
+                    }
+                    catch {
+                    }
                 }
                 return HookResult.Continue;
             }
