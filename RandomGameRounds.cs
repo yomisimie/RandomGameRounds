@@ -256,33 +256,36 @@ public class RandomGameRounds : BasePlugin
 
         RegisterListener<Listeners.OnPlayerTakeDamagePre>((player, damageInfo) =>
         {
-            if (ActiveEffects.Contains(AbundentAmmoEffectName)) {
-                var player = @event.Userid;
+            if (player == null || !player.IsValid) return HookResult.Continue;
+            if (ActiveEffects.Contains(AbundentAmmoEffectName)) 
+            {
                 var weaponServices = player.PlayerPawn.Value?.WeaponServices;
-                if (weaponServices == null)
+                
+                // If no weapon services, just exit this block and continue the hook
+                if (weaponServices != null)
                 {
-                    return;
-                }
-                foreach (var weaponHandle in weaponServices.MyWeapons)
-                {
-                    var weapon = weaponHandle.Value;
-                    if (weapon == null || !weapon.IsValid)
+                    foreach (var weaponHandle in weaponServices.MyWeapons)
                     {
-                        continue;
-                    }
-                    try {
-                        var reserveAmmo = weapon.ReserveAmmo;
-                        for (var index = 0; index < reserveAmmo.Length; index++)
+                        var weapon = weaponHandle.Value;
+                        if (weapon == null || !weapon.IsValid) continue;
+        
+                        try 
                         {
-                            reserveAmmo[index]++;
+                            var reserveAmmo = weapon.ReserveAmmo;
+                            for (var index = 0; index < reserveAmmo.Length; index++)
+                            {
+                                reserveAmmo[index]++;
+                            }
+        
+                            // Inform the engine the state has changed
+                            Utilities.SetStateChanged(weapon, "CBasePlayerWeapon", "m_pReserveAmmo");
                         }
-
-                        Utilities.SetStateChanged(weapon.As<CCSWeaponBase>(), "CBasePlayerWeapon", "m_pReserveAmmo");
-                    }
-                    catch {
+                        catch 
+                        {
+                            // Silently catch potential errors with non-gun entities
+                        }
                     }
                 }
-                return HookResult.Continue;
             }
         
             if (_oneTapActive || ActiveEffects.Contains(OneInTheChamberEffectName))
