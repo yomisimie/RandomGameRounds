@@ -1,0 +1,36 @@
+name: .NET Build and Release
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      # We use -c Release to get an optimized DLL
+      run: dotnet build --configuration Release --no-restore
+
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
+
+    # This step saves your compiled plugin so you can download it from the 'Actions' tab
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: MyPlugin-Build
+        path: bin/Release/net8.0/*.dll
