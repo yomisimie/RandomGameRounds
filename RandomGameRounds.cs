@@ -257,6 +257,7 @@ public class RandomGameRounds : BasePlugin
         RegisterListener<Listeners.OnPlayerTakeDamagePre>((player, damageInfo) =>
         {
             if (ActiveEffects.Contains(AbundentAmmoEffectName)) {
+                var weapon = attacker.PlayerPawn.Value?.WeaponServices?.ActiveWeapon.Value;
                 var reserveAmmo = weapon.ReserveAmmo;
                 for (var index = 0; index < reserveAmmo.Length; index++)
                 {
