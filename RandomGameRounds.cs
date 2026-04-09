@@ -633,13 +633,14 @@ public class RandomGameRounds : BasePlugin
         (Hp35EffectName,          Hp150EffectName),
         (LowGravityEffectName,    HighGravityEffectName),
         (LowAmmoEffectName,       KnifeOnlyEffectName),
-        (ClumsyEffectName,         KnifeOnlyEffectName),
-        (ClumsyEffectName,         OneTapEffectName),
-        (ClumsyEffectName,         OneInTheChamberEffectName),
-        (AbundentAmmoEffectName,   LowAmmoEffectName),
-        (AbundentAmmoEffectName,   OneInTheChamberEffectName),
-        (AbundentAmmoEffectName,   OneTapEffectName),
-        (AbundentAmmoEffectName,   KnifeOnlyEffectName)
+        (ClumsyEffectName,        KnifeOnlyEffectName),
+        (ClumsyEffectName,        OneTapEffectName),
+        (ClumsyEffectName,        OneInTheChamberEffectName),
+        (AbundentAmmoEffectName,  LowAmmoEffectName),
+        (AbundentAmmoEffectName,  OneInTheChamberEffectName),
+        (AbundentAmmoEffectName,  OneTapEffectName),
+        (AbundentAmmoEffectName,  KnifeOnlyEffectName),
+        (KnifeOnlyEffectName,     VampireEffectName)
     };
 
     private static bool CanWorkTogether(IEnumerable<string> selected, string candidate)
