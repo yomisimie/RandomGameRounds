@@ -37,6 +37,7 @@ public class RandomGameRounds : BasePlugin
     private const string DeagleDuelEffectName = "Deagle Duel";
     private const string AutoSniperEffectName = "Auto-Sniper Mayhem";
     private const string LowAmmoEffectName = "Low Ammo";
+    private const string AbundentAmmoEffectname = "Abundent Ammo";
     private const string SlowMovementEffectName = "Slow Movement";
     private const string VampireEffectName = "Vampire";
     private const string OneTapEffectName = "One Tap";
@@ -89,6 +90,7 @@ public class RandomGameRounds : BasePlugin
         NoArmorEffectName,
         NadeFrenzyEffectName,
         LowAmmoEffectName,
+        AbundentAmmoEffectname,
         SlowMovementEffectName,
         VampireEffectName,
         OneTapEffectName,
@@ -230,6 +232,7 @@ public class RandomGameRounds : BasePlugin
         AddCommand("css_effect_deagle",      "Force Deagle Duel loadout for current round",          (_, cmd) => ForceEffects(cmd, DeagleDuelEffectName));
         AddCommand("css_effect_autosniper",  "Force Auto-Sniper Mayhem loadout for current round",   (_, cmd) => ForceEffects(cmd, AutoSniperEffectName));
         AddCommand("css_effect_lowammo",     "Force Low Ammo modifier for current round",            (_, cmd) => ForceEffects(cmd, LowAmmoEffectName));
+        AddCommand("css_effect_moreammo",    "Force Abundent Ammo modifier for current round",        (_, cmd) => ForceEffects(cmd, AbundentAmmoEffectName));
         AddCommand("css_effect_slow",        "Force Slow Movement modifier for current round",        (_, cmd) => ForceEffects(cmd, SlowMovementEffectName));
         AddCommand("css_effect_vampire",     "Force Vampire modifier for current round",              (_, cmd) => ForceEffects(cmd, VampireEffectName));
         AddCommand("css_effect_onetap",      "Force One Tap modifier for current round",              (_, cmd) => ForceEffects(cmd, OneTapEffectName));
@@ -253,6 +256,15 @@ public class RandomGameRounds : BasePlugin
 
         RegisterListener<Listeners.OnPlayerTakeDamagePre>((player, damageInfo) =>
         {
+            if (ActiveEffects.Contains(AbundentAmmoEffectname)) {
+                var reserveAmmo = weapon.ReserveAmmo;
+                for (var index = 0; index < reserveAmmo.Length; index++)
+                {
+                    reserveAmmo[index]++;
+                }
+                return HookResult.Continue;
+            }
+        
             if (_oneTapActive || ActiveEffects.Contains(OneInTheChamberEffectName))
             {
                 damageInfo.Damage = 1000.0f;
@@ -600,6 +612,10 @@ public class RandomGameRounds : BasePlugin
         (ClumsyEffectName,         KnifeOnlyEffectName),
         (ClumsyEffectName,         OneTapEffectName),
         (ClumsyEffectName,         OneInTheChamberEffectName),
+        (AbundentAmmoEffectName,   LowAmmoEffectName),
+        (AbundentAmmoEffectName,   OneInTheChamberEffectName),
+        (AbundentAmmoEffectName,   OneTapEffectName),
+        (AbundentAmmoEffectName,   KnifeOnlyEffectName)
     };
 
     private static bool CanWorkTogether(IEnumerable<string> selected, string candidate)
