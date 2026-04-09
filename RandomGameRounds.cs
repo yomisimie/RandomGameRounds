@@ -101,20 +101,34 @@ public class RandomGameRounds : BasePlugin
 
     private static readonly string[] RandomPrimaryWeaponPool =
     {
-        "weapon_mp9",
         "weapon_mac10",
+        "weapon_mp9",
+        "weapon_mp7",
+        "weapon_mp5sd",
         "weapon_ump45",
+        "weapon_p90",
+        "weapon_bizon",
+        "weapon_galil",
         "weapon_famas",
-        "weapon_galilar"
+        "weapon_ak47",
+        "weapon_m4a1",
+        "weapon_m4a1_silencer",
+        "weapon_sg556",
+        "weapon_aug",
     };
 
     private static readonly string[] RandomPistolWeaponPool =
     {
         "weapon_glock",
         "weapon_hkp2000",
+        "weapon_usp_silencer",
+        "weapon_elite",
         "weapon_p250",
+        "weapon_tec9",
+        "weapon_cz75a",
         "weapon_fiveseven",
-        "weapon_tec9"
+        "weapon_deagle",
+        "weapon_revolver"
     };
 
     private static readonly string[] ShotgunWeaponPool =
@@ -127,12 +141,13 @@ public class RandomGameRounds : BasePlugin
 
     private static readonly string[] SmgWeaponPool =
     {
-        "weapon_mp9",
         "weapon_mac10",
+        "weapon_mp9",
+        "weapon_mp7",
         "weapon_mp5sd",
         "weapon_ump45",
         "weapon_p90",
-        "weapon_bizon"
+        "weapon_bizon",
     };
 
     private static readonly string[] HeavyWeaponPool =
