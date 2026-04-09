@@ -259,7 +259,7 @@ public class RandomGameRounds : BasePlugin
             if (player == null || !player.IsValid) return HookResult.Continue;
             if (ActiveEffects.Contains(AbundentAmmoEffectName)) 
             {
-                var weaponServices = player.PlayerPawn.Value?.WeaponServices;
+                var weaponServices = player.WeaponServices;
                 
                 // If no weapon services, just exit this block and continue the hook
                 if (weaponServices != null)
