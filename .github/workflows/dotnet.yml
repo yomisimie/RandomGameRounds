@@ -32,5 +32,8 @@ jobs:
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: MyPlugin-Build
-        path: bin/Release/net8.0/*.dll
+        name: RandomGameRounds-build
+        path: |
+          bin/Release/net8.0/*.dll
+          bin/Release/net8.0/*.deps.json
+          bin/Release/net8.0/*.pdb
