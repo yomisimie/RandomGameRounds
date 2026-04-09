@@ -444,7 +444,11 @@ public class RandomGameRounds : BasePlugin
             }
 
             TriggerRandomRoundEffect("round_start_fallback");
-
+            // Give the bomb after a tiny delay to ensure players have spawned
+            AddTimer(0.5f, () => {
+                GiveBombToRandomT();
+            });
+            
             return HookResult.Continue;
         });
 
@@ -469,6 +473,27 @@ public class RandomGameRounds : BasePlugin
             Console.WriteLine("[Round Effect] Warmup ended. Match started.");
             return HookResult.Continue;
         });
+    }
+
+    private void GiveBombToRandomT()
+    {
+        // Get all valid players on the Terrorist side (TeamNum 2)
+        var terrorists = Utilities.GetPlayers().Where(p => 
+            p.IsValid && 
+            p.PawnIsAlive && 
+            p.TeamNum == 2 && // 2 is Terrorist, 3 is CT
+            !p.IsBot
+        ).ToList();
+    
+        if (terrorists.Count > 0)
+        {
+            // Pick a random player from the list
+            Random rnd = new Random();
+            var luckyPlayer = terrorists[rnd.Next(terrorists.Count)];
+    
+            // Give the C4
+            luckyPlayer.GiveNamedItem("weapon_c4");
+        }
     }
 
     private void RevealKillerToEnemies(CCSPlayerController attacker)
