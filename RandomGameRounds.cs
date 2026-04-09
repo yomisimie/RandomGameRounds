@@ -37,7 +37,7 @@ public class RandomGameRounds : BasePlugin
     private const string DeagleDuelEffectName = "Deagle Duel";
     private const string AutoSniperEffectName = "Auto-Sniper Mayhem";
     private const string LowAmmoEffectName = "Low Ammo";
-    private const string AbundentAmmoEffectname = "Abundent Ammo";
+    private const string AbundentAmmoEffectName = "Abundent Ammo";
     private const string SlowMovementEffectName = "Slow Movement";
     private const string VampireEffectName = "Vampire";
     private const string OneTapEffectName = "One Tap";
@@ -90,7 +90,7 @@ public class RandomGameRounds : BasePlugin
         NoArmorEffectName,
         NadeFrenzyEffectName,
         LowAmmoEffectName,
-        AbundentAmmoEffectname,
+        AbundentAmmoEffectName,
         SlowMovementEffectName,
         VampireEffectName,
         OneTapEffectName,
@@ -256,7 +256,7 @@ public class RandomGameRounds : BasePlugin
 
         RegisterListener<Listeners.OnPlayerTakeDamagePre>((player, damageInfo) =>
         {
-            if (ActiveEffects.Contains(AbundentAmmoEffectname)) {
+            if (ActiveEffects.Contains(AbundentAmmoEffectName)) {
                 var reserveAmmo = weapon.ReserveAmmo;
                 for (var index = 0; index < reserveAmmo.Length; index++)
                 {
