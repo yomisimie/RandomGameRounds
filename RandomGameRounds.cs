@@ -276,6 +276,7 @@ public class RandomGameRounds : BasePlugin
                             {
                                 reserveAmmo[index]++;
                             }
+                            Console.WriteLine($"[RandomGameRounds] Ammo refilled for pawn: {player.Index}");
         
                             // Inform the engine the state has changed
                             Utilities.SetStateChanged(weapon, "CBasePlayerWeapon", "m_pReserveAmmo");
