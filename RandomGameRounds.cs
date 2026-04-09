@@ -12,8 +12,8 @@ namespace RandomGameRounds;
 public class RandomGameRounds : BasePlugin
 {
     private const int DefaultGravity = 800;
-    private const int LowGravityValue = 300;
-    private const int HighGravityValue = 1200;
+    private const int LowGravityValue = 350;
+    private const int HighGravityValue = 1400;
     private const int DefaultGrenadeLimit = 4;
     private const int NadeFrenzyGrenadeLimit = 6;
     private const string NoScopeAwpEffectName = "AWP";
@@ -41,9 +41,7 @@ public class RandomGameRounds : BasePlugin
     private const string VampireEffectName = "Vampire";
     private const string OneTapEffectName = "One Tap";
     private const string ClumsyEffectName = "Clumsy";
-    private const string RevealKillerEffectName = "Reveal Killer";
     private const int ClumsyDropChancePercent = 8;
-    private const float KillerRevealDurationSeconds = 4.0f;
     private const float DefaultMovementMultiplier = 1.0f;
     private const float SlowMovementMultiplier = 0.45f;
     private const float DefaultAccelerate = 5.5f;
@@ -63,7 +61,6 @@ public class RandomGameRounds : BasePlugin
     private static bool _vampireActive;
     private static bool _oneTapActive;
     private static bool _clumsyActive;
-    private static bool _revealKillerActive;
 
     private static readonly string[] LoadoutEffects =
     {
@@ -95,8 +92,7 @@ public class RandomGameRounds : BasePlugin
         SlowMovementEffectName,
         VampireEffectName,
         OneTapEffectName,
-        ClumsyEffectName,
-        RevealKillerEffectName
+        ClumsyEffectName
     };
 
     private static readonly string[] RandomPrimaryWeaponPool =
@@ -238,7 +234,6 @@ public class RandomGameRounds : BasePlugin
         AddCommand("css_effect_vampire",     "Force Vampire modifier for current round",              (_, cmd) => ForceEffects(cmd, VampireEffectName));
         AddCommand("css_effect_onetap",      "Force One Tap modifier for current round",              (_, cmd) => ForceEffects(cmd, OneTapEffectName));
         AddCommand("css_effect_clumsy",      "Force Clumsy modifier for current round",               (_, cmd) => ForceEffects(cmd, ClumsyEffectName));
-        AddCommand("css_effect_revealkiller", "Force Reveal Killer modifier for current round",        (_, cmd) => ForceEffects(cmd, RevealKillerEffectName));
         AddCommand("css_effect_rules",       "Show effect compatibility rules",                       ShowEffectRulesCommand);
         AddCommand("css_effect_clear",       "Clear active forced effect state",                      ClearEffectCommand);
 
@@ -381,11 +376,6 @@ public class RandomGameRounds : BasePlugin
                 return HookResult.Continue;
             }
 
-            if (_revealKillerActive)
-            {
-                RevealKillerToEnemies(attacker);
-            }
-
             if (_vampireActive)
             {
                 var pawn = attacker.PlayerPawn.Value;
@@ -493,57 +483,6 @@ public class RandomGameRounds : BasePlugin
     
             // Give the C4
             luckyPlayer.GiveNamedItem("weapon_c4");
-        }
-    }
-
-    private void RevealKillerToEnemies(CCSPlayerController attacker)
-    {
-        if (!attacker.IsValid || attacker.PawnIsAlive != true)
-        {
-            return;
-        }
-
-        SetKillerRevealState(attacker, true);
-
-        AddTimer(KillerRevealDurationSeconds, () =>
-        {
-            if (!attacker.IsValid)
-            {
-                return;
-            }
-
-            SetKillerRevealState(attacker, false);
-        });
-    }
-
-    private static void SetKillerRevealState(CCSPlayerController attacker, bool isVisible)
-    {
-        var pawn = attacker.PlayerPawn.Value;
-        if (pawn == null || !pawn.IsValid)
-        {
-            return;
-        }
-
-        // Best-effort fields: game/API builds may expose different names.
-        TrySetNamedBooleanMember(attacker, "Spotted", isVisible);
-        TrySetNamedBooleanMember(attacker, "IsSpotted", isVisible);
-        TrySetNamedBooleanMember(attacker, "m_bSpotted", isVisible);
-
-        TrySetNamedBooleanMember(pawn, "Spotted", isVisible);
-        TrySetNamedBooleanMember(pawn, "IsSpotted", isVisible);
-        TrySetNamedBooleanMember(pawn, "m_bSpotted", isVisible);
-        TrySetNamedBooleanMember(pawn, "Glowing", isVisible);
-        TrySetNamedBooleanMember(pawn, "m_bGlowing", isVisible);
-
-        TrySetNamedNumericMember(attacker, "m_bSpotted", isVisible ? 1 : 0);
-        TrySetNamedNumericMember(pawn, "m_bSpotted", isVisible ? 1 : 0);
-
-        try
-        {
-            Utilities.SetStateChanged(pawn.As<CBaseEntity>(), "CBaseEntity", "m_bSpotted");
-        }
-        catch
-        {
         }
     }
 
@@ -775,9 +714,6 @@ public class RandomGameRounds : BasePlugin
                 break;
             case ClumsyEffectName:
                 _clumsyActive = true;
-                break;
-            case RevealKillerEffectName:
-                _revealKillerActive = true;
                 break;
             default:
                 ResetGravity();
@@ -1868,7 +1804,6 @@ public class RandomGameRounds : BasePlugin
         _vampireActive = false;
         _oneTapActive = false;
         _clumsyActive = false;
-        _revealKillerActive = false;
         ResetAllPlayersMovementMultipliers();
         ResetAllPlayersMaxSpeed();
         ActiveEffects.Clear();
@@ -2023,7 +1958,7 @@ public class RandomGameRounds : BasePlugin
     private void ShowEffectRulesCommand(CCSPlayerController? player, CommandInfo command)
     {
         command.ReplyToCommand("[Round Effect Rules] Loadouts (pick 1): Knife Only, AWP, Pistols Only, One in the Chamber, Random Weapons, ScoutzKnivez, Shotguns Only, SMG Rush, Heavy Only, Pistol Roulette, Deagle Duel, Auto-Sniper Mayhem");
-        command.ReplyToCommand("[Round Effect Rules] Modifiers (pick 2): Low Gravity, High Gravity, Headshots Only, Invisible Radar, 35 HP, 150 HP, No Armor, Nade Frenzy, Low Ammo, Slow Movement, Vampire, One Tap, Clumsy, Reveal Killer");
+        command.ReplyToCommand("[Round Effect Rules] Modifiers (pick 2): Low Gravity, High Gravity, Headshots Only, Invisible Radar, 35 HP, 150 HP, No Armor, Nade Frenzy, Low Ammo, Slow Movement, Vampire, One Tap, Clumsy");
         command.ReplyToCommand("[Round Effect Rules] Can't combine: Knife Only + Headshots Only");
         command.ReplyToCommand("[Round Effect Rules] Can't combine: 35 HP + 150 HP");
         command.ReplyToCommand("[Round Effect Rules] Can't combine: Low Gravity + High Gravity");
