@@ -1321,8 +1321,8 @@ public class RandomGameRounds : BasePlugin
         }
         // Nuclear Proximity for all
         if (ActiveEffects.Contains(NuclearC4EffectName)) {
-            plugin._nuclearShakeTimer?.Kill();
-            plugin._nuclearShakeTimer = plugin.AddTimer(0.2f, () => 
+            _nuclearShakeTimer?.Kill();
+            _nuclearShakeTimer = plugin.AddTimer(0.2f, () => 
             {
                 foreach (var p in Utilities.GetPlayers().Where(p => p.PawnIsAlive))
                 {
