@@ -555,42 +555,39 @@ public class RandomGameRounds : BasePlugin
 
     private void ApplySilentHillFog()
     {
-        // 1. Find the camera entity (often named 'point_camera' or similar)
-        var camera = Utilities.FindAllEntitiesByDesignerName<CPointCamera>("point_camera").FirstOrDefault();
-    
-        if (camera != null)
+        foreach (var player in Utilities.GetPlayers().Where(p => p.PawnIsAlive))
         {
-            // 2. Apply the schema properties you found
-            camera.FogEnable = true;
-            camera.FogStart = 0.0f;
-            camera.FogEnd = 600.0f;
-            camera.FogMaxDensity = 1.0f;
-            camera.FogColor = System.Drawing.Color.FromArgb(255, 180, 180, 180);
-    
-            // 3. Update the state
-            Utilities.SetStateChanged(camera, "CPointCamera", "m_bFogEnable");
-            Utilities.SetStateChanged(camera, "CPointCamera", "m_flFogEnd");
+            var pawn = player.PlayerPawn.Value;
             
-            Server.PrintToChatAll(" [\x02! \x01] A thick mist rolls in... Welcome to Silent Hill.");
+            // CPlayer_CameraServices contains the Fog properties you found
+            var cameraServices = pawn?.CameraServices;
+            if (cameraServices == null) continue;
+    
+            // Applying the schema members found in CPointCamera/CameraServices
+            cameraServices.FogEnable = true;
+            cameraServices.FogStart = 0.0f;
+            cameraServices.FogEnd = 600.0f; // Everything past 600 units is gray
+            cameraServices.FogMaxDensity = 1.0f;
+            
+            // Misty Grey Color
+            cameraServices.FogColor = System.Drawing.Color.FromArgb(255, 180, 180, 180);
+    
+            // Sync the changes from Server to Client
+            Utilities.SetStateChanged(pawn!, "CBasePlayerPawn", "m_pCameraServices");
         }
-        else
-        {
-            // Fallback: If the map doesn't have a CPointCamera, we use the Player's camera services
-            // as a backup so the effect still works on every map!
-            ApplyCameraServicesFog();
-        }
+    
+        Server.PrintToChatAll(" [\x02! \x01] Fog has consumed the map. Stay close.");
     }
     
     private void ResetMapFog()
     {
         foreach (var player in Utilities.GetPlayers())
         {
-            var pawn = player.PlayerPawn.Value;
-            var cameraServices = pawn?.CameraServices;
+            var cameraServices = player.PlayerPawn.Value?.CameraServices;
             if (cameraServices != null)
             {
                 cameraServices.FogEnable = false;
-                Utilities.SetStateChanged(pawn!, "CBasePlayerPawn", "m_pCameraServices");
+                Utilities.SetStateChanged(player.PlayerPawn.Value!, "CBasePlayerPawn", "m_pCameraServices");
             }
         }
     }
