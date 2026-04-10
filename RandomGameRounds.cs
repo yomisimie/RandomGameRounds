@@ -330,7 +330,8 @@ public class RandomGameRounds : BasePlugin
                 
                 if (shooter != null && shooter.IsValid && shooter.PawnIsAlive)
                 {
-                    ReloadTaser(shooter);
+                    shooter.RemoveWeapons();
+                    shooter.GiveNamedItem("weapon_taser");
                 }
             }
         
@@ -1260,41 +1261,6 @@ public class RandomGameRounds : BasePlugin
         }
 
         return false;
-    }
-
-    public void ReloadTaser(CCSPlayerController player)
-    {
-        var pawn = player.PlayerPawn.Value;
-        if (pawn?.WeaponServices == null) return;
-    
-        // Iterate through all weapons the player is holding
-        foreach (var handle in pawn.WeaponServices.MyWeapons)
-        {
-            if (handle == null || !handle.IsValid || handle.Value == null) continue;
-    
-            var weapon = handle.Value;
-    
-            // Check if the designer name is specifically the taser
-            if (weapon.DesignerName == "weapon_taser")
-            {
-                // 1. Set ammo in the current clip
-                weapon.Clip1 = 1;
-    
-                // 2. Reset the cooldown timers
-                // If weapon.NextPrimaryAttackTick isn't available, 
-                // the API might use m_flNextPrimaryAttack (float)
-                weapon.NextPrimaryAttackTick = Server.TickCount;
-                
-                // 3. Force the HUD to update for the player
-                // 'm_iClip1' is the specific networked variable name
-                Utilities.SetStateChanged(weapon, "CBasePlayerWeapon", "m_iClip1");
-    
-                player.PrintToChat(" [\x04Zeus\x01] Battery replaced.");
-                
-                // Exit loop once found and fixed
-                return; 
-            }
-        }
     }
 
     private static void ApplyPlantEffects(RandomGameRounds plugin)
