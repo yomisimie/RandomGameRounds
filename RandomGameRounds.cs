@@ -1264,31 +1264,36 @@ public class RandomGameRounds : BasePlugin
 
     public void ReloadTaser(CCSPlayerController player)
     {
-        // Access the pawn's weapon services
-        var weaponServices = player.PlayerPawn.Value?.WeaponServices;
-        if (weaponServices == null) return;
+        var pawn = player.PlayerPawn.Value;
+        if (pawn?.WeaponServices == null) return;
     
-        // Iterate through the player's weapon handles
-        foreach (var gunHandle in weaponServices.MyWeapons)
+        // Iterate through all weapons the player is holding
+        foreach (var handle in pawn.WeaponServices.MyWeapons)
         {
-            if (gunHandle == null || !gunHandle.IsValid) continue;
+            if (handle == null || !handle.IsValid || handle.Value == null) continue;
     
-            var gun = gunHandle.Value;
-            if (gun == null || gun.DesignerName != "weapon_taser") continue;
+            var weapon = handle.Value;
     
-            // Reset the clip
-            // In many CS2 Sharp versions, Clip1 is a direct property
-            gun.Clip1 = 1;
+            // Check if the designer name is specifically the taser
+            if (weapon.DesignerName == "weapon_taser")
+            {
+                // 1. Set ammo in the current clip
+                weapon.Clip1 = 1;
     
-            // CRITICAL: The Taser 'cooldown' logic
-            // We set the ready-to-fire time to 'now' so the player can shoot immediately
-            gun.NextPrimaryAttackTick = Server.TickCount;
-            
-            // Sync the state so the HUD updates for the player
-            Utilities.SetStateChanged(gun, "CBasePlayerWeapon", "m_iClip1");
+                // 2. Reset the cooldown timers
+                // If weapon.NextPrimaryAttackTick isn't available, 
+                // the API might use m_flNextPrimaryAttack (float)
+                weapon.NextPrimaryAttackTick = Server.TickCount;
+                
+                // 3. Force the HUD to update for the player
+                // 'm_iClip1' is the specific networked variable name
+                Utilities.SetStateChanged(weapon, "CBasePlayerWeapon", "m_iClip1");
     
-            player.PrintToChat(" [\x04Zeus\x01] Battery Recharged.");
-            break; 
+                player.PrintToChat(" [\x04Zeus\x01] Battery replaced.");
+                
+                // Exit loop once found and fixed
+                return; 
+            }
         }
     }
 
