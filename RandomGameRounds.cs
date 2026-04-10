@@ -323,12 +323,12 @@ public class RandomGameRounds : BasePlugin
             // Check if the effect is active and the weapon fired was a taser
             if (ActiveEffects.Contains(GodsOfThunderEffectName) && @event.Weapon == "weapon_taser")
             {
-                var player = @event.Userid;
+                var shooter = @event.Userid;
                 
-                if (player != null && player.IsValid && player.PawnIsAlive)
+                if (shooter != null && shooter.IsValid && shooter.PawnIsAlive)
                 {
                     // We get the active weapon from the player's pawn
-                    var weapon = player.PlayerPawn.Value?.WeaponServices?.ActiveWeapon.Value;
+                    var weapon = shooter.PlayerPawn.Value?.WeaponServices?.ActiveWeapon.Value;
         
                     if (weapon != null && weapon.DesignerName == "weapon_taser")
                     {
