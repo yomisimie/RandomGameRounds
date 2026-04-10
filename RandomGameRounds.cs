@@ -790,26 +790,26 @@ public class RandomGameRounds : BasePlugin
         }
     }
 
-    public static void ClearInventoryExceptBomb(CCSPlayerController player)
+    public void ClearInventoryExceptBomb(CCSPlayerController player)
+{
+    var pawn = player.PlayerPawn.Value;
+    if (pawn?.WeaponServices == null) return;
+
+    // Use ToList() to avoid "Collection Modified" errors
+    foreach (var handle in pawn.WeaponServices.MyWeapons.ToList())
     {
-        var pawn = player.PlayerPawn.Value;
-        if (pawn?.WeaponServices == null) return;
-    
-        // Use ToList() to avoid "Collection Modified" errors
-        foreach (var handle in pawn.WeaponServices.MyWeapons.ToList())
-        {
-            if (handle == null || !handle.IsValid || handle.Value == null) continue;
-    
-            var weapon = handle.Value;
-    
-            // SKIP the bomb
-            if (weapon.DesignerName == "weapon_c4") 
-                continue;
-    
-            // Remove everything else (Knife, Taser, Pistols, etc)
-            weapon.Remove();
-        }
+        if (handle == null || !handle.IsValid || handle.Value == null) continue;
+
+        var weapon = handle.Value;
+
+        // SKIP the bomb
+        if (weapon.DesignerName == "weapon_c4") 
+            continue;
+
+        // Remove everything else (Knife, Taser, Pistols, etc)
+        weapon.Remove();
     }
+}
 
     private static void ApplyGodsOfThunder()
     {
