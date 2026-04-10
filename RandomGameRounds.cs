@@ -103,7 +103,8 @@ public class RandomGameRounds : BasePlugin
         OneTapEffectName,
         ClumsyEffectName,
         HealingC4EffectName,
-        NuclearC4EffectName
+        NuclearC4EffectName,
+        SilentHillEffectName
     };
 
     private static readonly string[] RandomPrimaryWeaponPool =
@@ -890,6 +891,13 @@ public class RandomGameRounds : BasePlugin
                 break;
             case ClumsyEffectName:
                 _clumsyActive = true;
+                break;
+            case SilentHillEffectName:
+                ApplySilentHillFog();
+                break;
+            case HealingC4EffectName:
+                break;
+            case NuclearC4EffectName:
                 break;
             default:
                 ResetGravity();
