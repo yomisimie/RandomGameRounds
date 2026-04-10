@@ -577,7 +577,7 @@ public class RandomGameRounds : BasePlugin
         }
     }
     
-    private void ResetCPointFog()
+    private void ResetMapFog()
     {
         var cameras = Utilities.FindAllEntitiesByDesignerName<CPointCamera>("point_camera");
     
