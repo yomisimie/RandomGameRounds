@@ -82,7 +82,7 @@ public class RandomGameRounds : BasePlugin
         PistolRouletteEffectName,
         DeagleDuelEffectName,
         AutoSniperEffectName,
-        GodsOfThunderEffectName,
+        GodsOfThunderEffectName
     };
 
     private static readonly string[] ModifierEffects =
@@ -329,16 +329,8 @@ public class RandomGameRounds : BasePlugin
                 
                 if (shooter != null && shooter.IsValid && shooter.PawnIsAlive)
                 {
-                    // We get the active weapon from the player's pawn
-                    var weapon = shooter.PlayerPawn.Value?.WeaponServices?.ActiveWeapon.Value;
-        
-                    if (weapon != null && weapon.DesignerName == "weapon_taser")
-                    {
-                        // Reset the 'Clip' to 1 (this is the single charge)
-                        weapon.Clip1 = 1;
-                        // Tell the game the ammo count has changed so the HUD updates
-                        Utilities.SetStateChanged(weapon, "CBasePlayerWeapon", "m_iClip1");
-                    }
+                    shooter.RemoveWeapons();
+                    shooter.GiveNamedItem("weapon_taser");
                 }
             }
         
@@ -785,7 +777,7 @@ public class RandomGameRounds : BasePlugin
                 _clumsyActive = true;
                 break;
             case GodsOfThunderEffectName:
-                ApplyGodsOfThunder();
+                ApplyLoadoutToAllAlivePlayers(GodsOfThunderEffectName);
                 break;
             case HealingC4EffectName:
                 break;
@@ -912,6 +904,10 @@ public class RandomGameRounds : BasePlugin
                 player.RemoveWeapons();
                 player.GiveNamedItem("weapon_knife");
                 player.GiveNamedItem(AutoSniperPool[Random.Shared.Next(AutoSniperPool.Length)]);
+                break;
+            case GodsOfThunderEffectName:
+                player.RemoveWeapons();
+                player.GiveNamedItem("weapon_taser");
                 break;
         }
 
