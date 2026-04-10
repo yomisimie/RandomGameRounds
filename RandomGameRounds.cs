@@ -24,6 +24,7 @@ public class RandomGameRounds : BasePlugin
     private const string ScoutzKnivezEffectName = "ScoutzKnivez";
     private const string RandomWeaponsEffectName = "Random Weapons";
     private const string KnifeOnlyEffectName = "Knife Only";
+    private const string GodsOfThunderEffectName = "Gods of Thunder";
     private const string LowGravityEffectName = "Low Gravity";
     private const string HighGravityEffectName = "High Gravity";
     private const string Hp35EffectName = "35 HP";
@@ -42,6 +43,8 @@ public class RandomGameRounds : BasePlugin
     private const string VampireEffectName = "Vampire";
     private const string OneTapEffectName = "One Tap";
     private const string ClumsyEffectName = "Clumsy";
+    private const string HealingC4EffectName = "Healing C4";
+    private const string NuclearC4EffectName = "Nuclear Proximity";
     private const int ClumsyDropChancePercent = 8;
     private const float DefaultMovementMultiplier = 1.0f;
     private const float SlowMovementMultiplier = 0.45f;
@@ -76,7 +79,8 @@ public class RandomGameRounds : BasePlugin
         HeavyOnlyEffectName,
         PistolRouletteEffectName,
         DeagleDuelEffectName,
-        AutoSniperEffectName
+        AutoSniperEffectName,
+        GodsOfThunderEffectName,
     };
 
     private static readonly string[] ModifierEffects =
@@ -94,7 +98,9 @@ public class RandomGameRounds : BasePlugin
         SlowMovementEffectName,
         VampireEffectName,
         OneTapEffectName,
-        ClumsyEffectName
+        ClumsyEffectName,
+        HealingC4EffectName,
+        NuclearC4EffectName
     };
 
     private static readonly string[] RandomPrimaryWeaponPool =
@@ -237,6 +243,9 @@ public class RandomGameRounds : BasePlugin
         AddCommand("css_effect_vampire",     "Force Vampire modifier for current round",              (_, cmd) => ForceEffects(cmd, VampireEffectName));
         AddCommand("css_effect_onetap",      "Force One Tap modifier for current round",              (_, cmd) => ForceEffects(cmd, OneTapEffectName));
         AddCommand("css_effect_clumsy",      "Force Clumsy modifier for current round",               (_, cmd) => ForceEffects(cmd, ClumsyEffectName));
+        AddCommand("css_effect_healc4",      "Force Healing C4 modifier for current round",           (_, cmd) => ForceEffects(cmd, HealingC4EffectName));
+        AddCommand("css_effect_nuclearc4",   "Force Nuclear proximity modifier for current round",    (_, cmd) => ForceEffects(cmd, NuclearC4EffectName));
+        AddCommand("css_effect_thunder",     "Force Gods of Thunder modifier for current round",      (_, cmd) => ForceEffects(cmd, GodsOfThunderEffectName));
         AddCommand("css_effect_rules",       "Show effect compatibility rules",                       ShowEffectRulesCommand);
         AddCommand("css_effect_clear",       "Clear active forced effect state",                      ClearEffectCommand);
 
@@ -311,6 +320,26 @@ public class RandomGameRounds : BasePlugin
 
         RegisterEventHandler<EventWeaponFire>((@event, info) =>
         {
+            // Check if the effect is active and the weapon fired was a taser
+            if (ActiveEffects.Contains(GodsOfThunderEffectName) && @event.Weapon == "weapon_taser")
+            {
+                var player = @event.Userid;
+                
+                if (player != null && player.IsValid && player.PawnIsAlive)
+                {
+                    // We get the active weapon from the player's pawn
+                    var weapon = player.PlayerPawn.Value?.WeaponServices?.ActiveWeapon.Value;
+        
+                    if (weapon != null && weapon.DesignerName == "weapon_taser")
+                    {
+                        // Reset the 'Clip' to 1 (this is the single charge)
+                        weapon.Clip1 = 1;
+                        // Tell the game the ammo count has changed so the HUD updates
+                        Utilities.SetStateChanged(weapon, "CBasePlayerWeapon", "m_iClip1");
+                    }
+                }
+            }
+        
             if (!_clumsyActive)
             {
                 return HookResult.Continue;
@@ -453,6 +482,8 @@ public class RandomGameRounds : BasePlugin
 
         RegisterEventHandler<EventRoundStart>((@event, info) =>
         {
+            _nuclearShakeTimer?.Kill();
+            _nuclearShakeTimer = null;
             if (ActiveEffects.Contains(NoArmorEffectName))
             {
                 ApplyNoArmor();
@@ -499,6 +530,40 @@ public class RandomGameRounds : BasePlugin
             Console.WriteLine("[Round Effect] Warmup ended. Match started.");
             return HookResult.Continue;
         });
+
+        RegisterEventHandler<EventBombPlanted>((@event, info) =>
+        {
+            ApplyPlantEffects();
+            return HookResult.Continue;
+        });
+    }
+
+    private void ApplyPlantEffects()
+    {
+        // Heal Ts
+        if (ActiveEffects.Contains(HealingC4EffectName)) {
+            foreach (var player in Utilities.GetPlayers().Where(p => p.TeamNum == 2 && p.PawnIsAlive))
+            {
+                player.PawnHealth = 100;
+                Utilities.SetStateChanged(player.PlayerPawn.Value!, "CBaseEntity", "m_iHealth");
+            }
+        }
+        // Nuclear Proximity for all
+        if (ActiveEffects.Contains(NuclearC4EffectName)) {
+            _nuclearShakeTimer = AddTimer(0.2f, () => 
+            {
+                foreach (var p in Utilities.GetPlayers().Where(p => p.PawnIsAlive))
+                {
+                    var pawn = p.PlayerPawn.Value;
+                    if (pawn == null) continue;
+        
+                    Random rnd = new();
+                    pawn.ViewPunchAngle.X += (float)(rnd.NextDouble() * 2.0 - 1.0);
+                    pawn.ViewPunchAngle.Y += (float)(rnd.NextDouble() * 2.0 - 1.0);
+                    Utilities.SetStateChanged(pawn, "CBasePlayerPawn", "m_pViewPunchAngle");
+                }
+            }, TimerFlags.REPEAT);
+        }
     }
 
     private void GiveBombToRandomT()
@@ -575,6 +640,15 @@ public class RandomGameRounds : BasePlugin
             ApplyOneInTheChamberAmmo();
             Server.NextWorldUpdate(() => ApplyOneInTheChamberAmmo());
             Server.NextWorldUpdate(() => Server.NextWorldUpdate(() => ApplyOneInTheChamberAmmo()));
+        }
+
+        if (selectedEffects.Contains(GodsOfThunderEffectName))
+        {
+            var player = @event.Userid;
+            if (player != null && player.IsValid && player.PawnIsAlive)
+            {
+                player.GiveNamedItem("weapon_taser");
+            }
         }
 
         ApplyActiveHpEffect();
