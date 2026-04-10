@@ -1264,25 +1264,31 @@ public class RandomGameRounds : BasePlugin
 
     public void ReloadTaser(CCSPlayerController player)
     {
-        if (player.PlayerPawn.Value?.WeaponServices == null) return;
+        // Access the pawn's weapon services
+        var weaponServices = player.PlayerPawn.Value?.WeaponServices;
+        if (weaponServices == null) return;
     
-        foreach (var weaponHandle in player.PlayerPawn.Value.WeaponServices.MyWeapons)
+        // Iterate through the player's weapon handles
+        foreach (var gunHandle in weaponServices.MyWeapons)
         {
-            var weapon = weaponHandle.Value;
-            if (weapon == null || weapon.DesignerName != "weapon_taser") continue;
+            if (gunHandle == null || !gunHandle.IsValid) continue;
     
-            // Directly set the clip via the Schema property if available
-            // Or use the generic Schema.SetRef if the property is hidden
-            Schema.GetRef<int>(weapon.Handle, "CBasePlayerWeapon", "m_iClip1") = 1;
-            
-            // Reset the fire-ready time so they can shoot immediately
-            Schema.GetRef<float>(weapon.Handle, "CBasePlayerWeapon", "m_flPostponeFireReadyTime") = 0.0f;
+            var gun = gunHandle.Value;
+            if (gun == null || gun.DesignerName != "weapon_taser") continue;
     
-            // Network the change
-            Utilities.SetStateChanged(weapon, "CBasePlayerWeapon", "m_iClip1");
+            // Reset the clip
+            // In many CS2 Sharp versions, Clip1 is a direct property
+            gun.Clip1 = 1;
+    
+            // CRITICAL: The Taser 'cooldown' logic
+            // We set the ready-to-fire time to 'now' so the player can shoot immediately
+            gun.NextPrimaryAttackTick = Server.TickCount;
             
-            player.PrintToChat(" [\x04Taser\x01] Recharged!");
-            break;
+            // Sync the state so the HUD updates for the player
+            Utilities.SetStateChanged(gun, "CBasePlayerWeapon", "m_iClip1");
+    
+            player.PrintToChat(" [\x04Zeus\x01] Battery Recharged.");
+            break; 
         }
     }
 
