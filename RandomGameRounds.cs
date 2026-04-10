@@ -555,30 +555,39 @@ public class RandomGameRounds : BasePlugin
 
     private void ApplySilentHillFog()
     {
-        var fogController = Utilities.FindAllEntitiesByDesignerName<CFogController>("env_fog_controller").FirstOrDefault();
-    
-        if (fogController != null)
+        foreach (var player in Utilities.GetPlayers().Where(p => p.PawnIsAlive))
         {
-            fogController.m_fog.Enable = true;
-            fogController.m_fog.Start = 0.0f;
-            fogController.m_fog.End = 600.0f; // Very short distance for that "Silent Hill" feel
-            fogController.m_fog.Maxdensity = 1.0f; // Fully opaque at the 'End' distance
-            
-            // Classic Gray/White fog
-            fogController.m_fog.Color = System.Drawing.Color.FromArgb(255, 180, 180, 180);
+            var pawn = player.PlayerPawn.Value;
+            var cameraServices = pawn?.CameraServices;
+            if (cameraServices == null) continue;
     
-            Utilities.SetStateChanged(fogController, "CFogController", "m_fog");
+            // Using the Schema names you found:
+            cameraServices.FogEnable = true;
+            cameraServices.FogStart = 0.0f;
+            cameraServices.FogEnd = 600.0f;
+            cameraServices.FogMaxDensity = 1.0f;
+            
+            // Setting the color (Greyish Mist)
+            cameraServices.FogColor = System.Drawing.Color.FromArgb(255, 180, 180, 180);
+    
+            // Sync the camera services change
+            Utilities.SetStateChanged(pawn!, "CBasePlayerPawn", "m_pCameraServices");
         }
+        
+        Server.PrintToChatAll(" [\x02! \x01] A thick mist rolls in... Welcome to Silent Hill.");
     }
     
     private void ResetMapFog()
     {
-        var fogController = Utilities.FindAllEntitiesByDesignerName<CFogController>("env_fog_controller").FirstOrDefault();
-        if (fogController != null)
+        foreach (var player in Utilities.GetPlayers())
         {
-            // Disable the override
-            fogController.m_fog.Enable = false;
-            Utilities.SetStateChanged(fogController, "CFogController", "m_fog");
+            var pawn = player.PlayerPawn.Value;
+            var cameraServices = pawn?.CameraServices;
+            if (cameraServices != null)
+            {
+                cameraServices.FogEnable = false;
+                Utilities.SetStateChanged(pawn!, "CBasePlayerPawn", "m_pCameraServices");
+            }
         }
     }
 
