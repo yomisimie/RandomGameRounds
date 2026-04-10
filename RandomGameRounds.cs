@@ -45,7 +45,6 @@ public class RandomGameRounds : BasePlugin
     private const string ClumsyEffectName = "Clumsy";
     private const string HealingC4EffectName = "Healing C4";
     private const string NuclearC4EffectName = "Nuclear Proximity";
-    private const string SilentHillEffectName = "Silent Hill";
     private const int ClumsyDropChancePercent = 8;
     private const float DefaultMovementMultiplier = 1.0f;
     private const float SlowMovementMultiplier = 0.45f;
@@ -103,8 +102,7 @@ public class RandomGameRounds : BasePlugin
         OneTapEffectName,
         ClumsyEffectName,
         HealingC4EffectName,
-        NuclearC4EffectName,
-        SilentHillEffectName
+        NuclearC4EffectName
     };
 
     private static readonly string[] RandomPrimaryWeaponPool =
@@ -250,7 +248,6 @@ public class RandomGameRounds : BasePlugin
         AddCommand("css_effect_healc4",      "Force Healing C4 modifier for current round",           (_, cmd) => ForceEffects(cmd, HealingC4EffectName));
         AddCommand("css_effect_nuclearc4",   "Force Nuclear proximity modifier for current round",    (_, cmd) => ForceEffects(cmd, NuclearC4EffectName));
         AddCommand("css_effect_thunder",     "Force Gods of Thunder modifier for current round",      (_, cmd) => ForceEffects(cmd, GodsOfThunderEffectName));
-        AddCommand("css_effect_fog",         "Force Silent Hill modifier for current round",          (_, cmd) => ForceEffects(cmd, SilentHillEffectName));
         AddCommand("css_effect_rules",       "Show effect compatibility rules",                       ShowEffectRulesCommand);
         AddCommand("css_effect_clear",       "Clear active forced effect state",                      ClearEffectCommand);
 
@@ -511,11 +508,6 @@ public class RandomGameRounds : BasePlugin
             }
 
             TriggerRandomRoundEffect("round_start_fallback");
-            // 2. Check if Silent Hill was just picked by TriggerRandomRoundEffect
-            if (ActiveEffects.Contains(SilentHillEffectName))
-            {
-                ApplySilentHillFog();
-            }
             
             // Give the bomb after a tiny delay to ensure players have spawned
             AddTimer(0.5f, () => {
@@ -611,10 +603,9 @@ public class RandomGameRounds : BasePlugin
 
         if (selectedEffects.Contains(GodsOfThunderEffectName))
         {
-            foreach (var player in Utilities.GetPlayers())
-            {
-                player.GiveNamedItem("weapon_taser");
-            }
+            ApplyGodsOfThunder();
+            Server.NextWorldUpdate(() => ApplyGodsOfThunder());
+            Server.NextWorldUpdate(() => Server.NextWorldUpdate(() => ApplyGodsOfThunder()));
         }
 
         ApplyActiveHpEffect();
@@ -796,8 +787,8 @@ public class RandomGameRounds : BasePlugin
             case ClumsyEffectName:
                 _clumsyActive = true;
                 break;
-            case SilentHillEffectName:
-                ApplySilentHillFog();
+            case GodsOfThunderEffectName:
+                ApplyGodsOfThunder();
                 break;
             case HealingC4EffectName:
                 break;
@@ -806,6 +797,14 @@ public class RandomGameRounds : BasePlugin
             default:
                 ResetGravity();
                 break;
+        }
+    }
+
+    private static void ApplyGodsOfThunder()
+    {
+        foreach (var player in Utilities.GetPlayers())
+        {
+            player.GiveNamedItem("weapon_taser");
         }
     }
 
@@ -1268,46 +1267,6 @@ public class RandomGameRounds : BasePlugin
         }
 
         return false;
-    }
-
-    private static void ApplySilentHillFog(RandomGameRounds plugin)
-    {
-        var fogController = Utilities.FindAllEntitiesByDesignerName<CFogController>("env_fog_controller").FirstOrDefault();
-    
-        if (fogController != null)
-        {
-            // Access the nested struct
-            var fog = fogController.Fog;
-    
-            // Use the 'm_fl' and 'm_b' prefixes found in the engine schema
-            fog.m_bEnable = true;
-            fog.m_flStart = 0.0f;
-            fog.m_flEnd = 600.0f;
-            fog.m_flMaxDensity = 1.0f; 
-            fog.m_Color = System.Drawing.Color.FromArgb(255, 180, 180, 180);
-    
-            // Tell the controller which variables changed (bitmask)
-            // -1 covers all variables in the struct
-            fogController.ChangedVariables = -1; 
-    
-            // Network the change
-            Utilities.SetStateChanged(fogController, "CFogController", "m_fog");
-        }
-    }
-    
-    private static void ResetMapFog()
-    {
-        var cameras = Utilities.FindAllEntitiesByDesignerName<CPointCamera>("point_camera");
-    
-        foreach (var camera in cameras)
-        {
-            if (camera == null || !camera.IsValid) continue;
-    
-            // Disable the override
-            camera.FogEnable = false;
-            
-            Utilities.SetStateChanged(camera, "CPointCamera", "m_bFogEnable");
-        }
     }
 
     private static void ApplyPlantEffects(RandomGameRounds plugin)
