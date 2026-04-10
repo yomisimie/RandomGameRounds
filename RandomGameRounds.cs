@@ -555,26 +555,30 @@ public class RandomGameRounds : BasePlugin
 
     private void ApplySilentHillFog()
     {
-        foreach (var player in Utilities.GetPlayers().Where(p => p.PawnIsAlive))
+        // 1. Find the camera entity (often named 'point_camera' or similar)
+        var camera = Utilities.FindAllEntitiesByDesignerName<CPointCamera>("point_camera").FirstOrDefault();
+    
+        if (camera != null)
         {
-            var pawn = player.PlayerPawn.Value;
-            var cameraServices = pawn?.CameraServices;
-            if (cameraServices == null) continue;
+            // 2. Apply the schema properties you found
+            camera.FogEnable = true;
+            camera.FogStart = 0.0f;
+            camera.FogEnd = 600.0f;
+            camera.FogMaxDensity = 1.0f;
+            camera.FogColor = System.Drawing.Color.FromArgb(255, 180, 180, 180);
     
-            // Using the Schema names you found:
-            cameraServices.FogEnable = true;
-            cameraServices.FogStart = 0.0f;
-            cameraServices.FogEnd = 600.0f;
-            cameraServices.FogMaxDensity = 1.0f;
+            // 3. Update the state
+            Utilities.SetStateChanged(camera, "CPointCamera", "m_bFogEnable");
+            Utilities.SetStateChanged(camera, "CPointCamera", "m_flFogEnd");
             
-            // Setting the color (Greyish Mist)
-            cameraServices.FogColor = System.Drawing.Color.FromArgb(255, 180, 180, 180);
-    
-            // Sync the camera services change
-            Utilities.SetStateChanged(pawn!, "CBasePlayerPawn", "m_pCameraServices");
+            Server.PrintToChatAll(" [\x02! \x01] A thick mist rolls in... Welcome to Silent Hill.");
         }
-        
-        Server.PrintToChatAll(" [\x02! \x01] A thick mist rolls in... Welcome to Silent Hill.");
+        else
+        {
+            // Fallback: If the map doesn't have a CPointCamera, we use the Player's camera services
+            // as a backup so the effect still works on every map!
+            ApplyCameraServicesFog();
+        }
     }
     
     private void ResetMapFog()
