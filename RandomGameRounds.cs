@@ -554,102 +554,6 @@ public class RandomGameRounds : BasePlugin
         });
     }
 
-    private void ApplySilentHillFog()
-    {
-        // Find all CPointCamera entities using the designer name
-        var cameras = Utilities.FindAllEntitiesByDesignerName<CPointCamera>("point_camera");
-    
-        foreach (var camera in cameras)
-        {
-            if (camera == null || !camera.IsValid) continue;
-    
-            // Using the properties from the class definition you provided
-            camera.FogEnable = true;
-            camera.FogStart = 0.0f;
-            camera.FogEnd = 600.0f;
-            camera.FogMaxDensity = 1.0f;
-            camera.FogColor = System.Drawing.Color.FromArgb(255, 180, 180, 180);
-            camera.Active = true; // Ensure the camera is actually processing
-    
-            // Notify the engine of the specific schema changes
-            Utilities.SetStateChanged(camera, "CPointCamera", "m_bFogEnable");
-            Utilities.SetStateChanged(camera, "CPointCamera", "m_flFogStart");
-            Utilities.SetStateChanged(camera, "CPointCamera", "m_flFogEnd");
-        }
-    }
-    
-    private void ResetMapFog()
-    {
-        var cameras = Utilities.FindAllEntitiesByDesignerName<CPointCamera>("point_camera");
-    
-        foreach (var camera in cameras)
-        {
-            if (camera == null || !camera.IsValid) continue;
-    
-            // Disable the override
-            camera.FogEnable = false;
-            
-            Utilities.SetStateChanged(camera, "CPointCamera", "m_bFogEnable");
-        }
-    }
-
-    private void ApplyPlantEffects()
-    {
-        // Heal Ts
-        if (ActiveEffects.Contains(HealingC4EffectName)) {
-            foreach (var player in Utilities.GetPlayers().Where(p => p.TeamNum == 2 && p.PawnIsAlive))
-            {
-                player.PawnHealth = 100;
-                Utilities.SetStateChanged(player.PlayerPawn.Value!, "CBaseEntity", "m_iHealth");
-            }
-        }
-        // Nuclear Proximity for all
-        if (ActiveEffects.Contains(NuclearC4EffectName)) {
-            _nuclearShakeTimer = AddTimer(0.2f, () => 
-            {
-                foreach (var p in Utilities.GetPlayers().Where(p => p.PawnIsAlive))
-                {
-                    var pawn = p.PlayerPawn.Value;
-                    
-                    // Access the CameraServices component
-                    var cameraServices = pawn?.CameraServices;
-                    if (cameraServices == null) continue;
-            
-                    Random rnd = new();
-                    float intensity = 1.5f;
-            
-                    // Use the property name from your schema: CsViewPunchAngle
-                    cameraServices.CsViewPunchAngle.X += (float)(rnd.NextDouble() * intensity * 2 - intensity);
-                    cameraServices.CsViewPunchAngle.Y += (float)(rnd.NextDouble() * intensity * 2 - intensity);
-                    
-                    // Inform the engine that the CameraServices state has changed
-                    Utilities.SetStateChanged(pawn!, "CBasePlayerPawn", "m_pCameraServices");
-                }
-            }, TimerFlags.REPEAT);
-        }
-    }
-
-    private void GiveBombToRandomT()
-    {
-        // Get all valid players on the Terrorist side (TeamNum 2)
-        var terrorists = Utilities.GetPlayers().Where(p => 
-            p.IsValid && 
-            p.PawnIsAlive && 
-            p.TeamNum == 2 && // 2 is Terrorist, 3 is CT
-            !p.IsBot
-        ).ToList();
-    
-        if (terrorists.Count > 0)
-        {
-            // Pick a random player from the list
-            Random rnd = new Random();
-            var luckyPlayer = terrorists[rnd.Next(terrorists.Count)];
-    
-            // Give the C4
-            luckyPlayer.GiveNamedItem("weapon_c4");
-        }
-    }
-
     private static void TriggerRandomRoundEffect(string source)
     {
         var selectedEffects = BuildRandomEffectSet();
@@ -1364,6 +1268,102 @@ public class RandomGameRounds : BasePlugin
         }
 
         return false;
+    }
+
+    private static void ApplySilentHillFog()
+    {
+        // Find all CPointCamera entities using the designer name
+        var cameras = Utilities.FindAllEntitiesByDesignerName<CPointCamera>("point_camera");
+    
+        foreach (var camera in cameras)
+        {
+            if (camera == null || !camera.IsValid) continue;
+    
+            // Using the properties from the class definition you provided
+            camera.FogEnable = true;
+            camera.FogStart = 0.0f;
+            camera.FogEnd = 600.0f;
+            camera.FogMaxDensity = 1.0f;
+            camera.FogColor = System.Drawing.Color.FromArgb(255, 180, 180, 180);
+            camera.Active = true; // Ensure the camera is actually processing
+    
+            // Notify the engine of the specific schema changes
+            Utilities.SetStateChanged(camera, "CPointCamera", "m_bFogEnable");
+            Utilities.SetStateChanged(camera, "CPointCamera", "m_flFogStart");
+            Utilities.SetStateChanged(camera, "CPointCamera", "m_flFogEnd");
+        }
+    }
+    
+    private static void ResetMapFog()
+    {
+        var cameras = Utilities.FindAllEntitiesByDesignerName<CPointCamera>("point_camera");
+    
+        foreach (var camera in cameras)
+        {
+            if (camera == null || !camera.IsValid) continue;
+    
+            // Disable the override
+            camera.FogEnable = false;
+            
+            Utilities.SetStateChanged(camera, "CPointCamera", "m_bFogEnable");
+        }
+    }
+
+    private static void ApplyPlantEffects()
+    {
+        // Heal Ts
+        if (ActiveEffects.Contains(HealingC4EffectName)) {
+            foreach (var player in Utilities.GetPlayers().Where(p => p.TeamNum == 2 && p.PawnIsAlive))
+            {
+                player.PawnHealth = 100;
+                Utilities.SetStateChanged(player.PlayerPawn.Value!, "CBaseEntity", "m_iHealth");
+            }
+        }
+        // Nuclear Proximity for all
+        if (ActiveEffects.Contains(NuclearC4EffectName)) {
+            _nuclearShakeTimer = AddTimer(0.2f, () => 
+            {
+                foreach (var p in Utilities.GetPlayers().Where(p => p.PawnIsAlive))
+                {
+                    var pawn = p.PlayerPawn.Value;
+                    
+                    // Access the CameraServices component
+                    var cameraServices = pawn?.CameraServices;
+                    if (cameraServices == null) continue;
+            
+                    Random rnd = new();
+                    float intensity = 1.5f;
+            
+                    // Use the property name from your schema: CsViewPunchAngle
+                    cameraServices.CsViewPunchAngle.X += (float)(rnd.NextDouble() * intensity * 2 - intensity);
+                    cameraServices.CsViewPunchAngle.Y += (float)(rnd.NextDouble() * intensity * 2 - intensity);
+                    
+                    // Inform the engine that the CameraServices state has changed
+                    Utilities.SetStateChanged(pawn!, "CBasePlayerPawn", "m_pCameraServices");
+                }
+            }, TimerFlags.REPEAT);
+        }
+    }
+
+    private static void GiveBombToRandomT()
+    {
+        // Get all valid players on the Terrorist side (TeamNum 2)
+        var terrorists = Utilities.GetPlayers().Where(p => 
+            p.IsValid && 
+            p.PawnIsAlive && 
+            p.TeamNum == 2 && // 2 is Terrorist, 3 is CT
+            !p.IsBot
+        ).ToList();
+    
+        if (terrorists.Count > 0)
+        {
+            // Pick a random player from the list
+            Random rnd = new Random();
+            var luckyPlayer = terrorists[rnd.Next(terrorists.Count)];
+    
+            // Give the C4
+            luckyPlayer.GiveNamedItem("weapon_c4");
+        }
     }
 
     private static void ApplyLowAmmo()
