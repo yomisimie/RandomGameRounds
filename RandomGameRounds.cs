@@ -790,27 +790,6 @@ public class RandomGameRounds : BasePlugin
         }
     }
 
-    public void ClearInventoryExceptBomb(CCSPlayerController player)
-{
-    var pawn = player.PlayerPawn.Value;
-    if (pawn?.WeaponServices == null) return;
-
-    // Use ToList() to avoid "Collection Modified" errors
-    foreach (var handle in pawn.WeaponServices.MyWeapons.ToList())
-    {
-        if (handle == null || !handle.IsValid || handle.Value == null) continue;
-
-        var weapon = handle.Value;
-
-        // SKIP the bomb
-        if (weapon.DesignerName == "weapon_c4") 
-            continue;
-
-        // Remove everything else (Knife, Taser, Pistols, etc)
-        weapon.Remove();
-    }
-}
-
     private static void ApplyGodsOfThunder()
     {
         foreach (var player in Utilities.GetPlayers())
@@ -849,7 +828,7 @@ public class RandomGameRounds : BasePlugin
             return;
         }
 
-        ClearInventoryExceptBomb(player);
+        player.RemoveWeapons();
         player.GiveNamedItem("weapon_knife");
         player.GiveNamedItem("weapon_awp");
     }
@@ -869,66 +848,66 @@ public class RandomGameRounds : BasePlugin
         switch (loadoutEffect)
         {
             case KnifeOnlyEffectName:
-                ClearInventoryExceptBomb(player);
+                player.RemoveWeapons();
                 player.GiveNamedItem("weapon_knife");
                 break;
             case NoScopeAwpEffectName:
                 ApplyNoScopeAwpToPlayer(player);
                 break;
             case PistolsOnlyEffectName:
-                ClearInventoryExceptBomb(player);
+                player.RemoveWeapons();
                 player.GiveNamedItem("weapon_knife");
                 player.GiveNamedItem(RandomPistolWeaponPool[Random.Shared.Next(RandomPistolWeaponPool.Length)]);
                 break;
             case OneInTheChamberEffectName:
-                ClearInventoryExceptBomb(player);
+                player.RemoveWeapons();
                 player.GiveNamedItem("weapon_knife");
                 player.GiveNamedItem("weapon_deagle");
                 ApplyOneInTheChamberAmmoToPlayer(player);
                 break;
             case RandomWeaponsEffectName:
-                ClearInventoryExceptBomb(player);
+                player.RemoveWeapons();
                 player.GiveNamedItem("weapon_knife");
                 player.GiveNamedItem(RandomPistolWeaponPool[Random.Shared.Next(RandomPistolWeaponPool.Length)]);
                 player.GiveNamedItem(RandomPrimaryWeaponPool[Random.Shared.Next(RandomPrimaryWeaponPool.Length)]);
                 break;
             case ScoutzKnivezEffectName:
-                ClearInventoryExceptBomb(player);
+                player.RemoveWeapons();
                 player.GiveNamedItem("weapon_knife");
                 player.GiveNamedItem("weapon_ssg08");
                 break;
             case ShotgunsOnlyEffectName:
-                ClearInventoryExceptBomb(player);
+                player.RemoveWeapons();
                 player.GiveNamedItem("weapon_knife");
                 player.GiveNamedItem(ShotgunWeaponPool[Random.Shared.Next(ShotgunWeaponPool.Length)]);
                 break;
             case SmgRushEffectName:
-                ClearInventoryExceptBomb(player);
+                player.RemoveWeapons();
                 player.GiveNamedItem("weapon_knife");
                 player.GiveNamedItem(SmgWeaponPool[Random.Shared.Next(SmgWeaponPool.Length)]);
                 break;
             case HeavyOnlyEffectName:
-                ClearInventoryExceptBomb(player);
+                player.RemoveWeapons();
                 player.GiveNamedItem("weapon_knife");
                 player.GiveNamedItem(HeavyWeaponPool[Random.Shared.Next(HeavyWeaponPool.Length)]);
                 break;
             case PistolRouletteEffectName:
-                ClearInventoryExceptBomb(player);
+                player.RemoveWeapons();
                 player.GiveNamedItem("weapon_knife");
                 player.GiveNamedItem(RandomPistolWeaponPool[Random.Shared.Next(RandomPistolWeaponPool.Length)]);
                 break;
             case DeagleDuelEffectName:
-                ClearInventoryExceptBomb(player);
+                player.RemoveWeapons();
                 player.GiveNamedItem("weapon_knife");
                 player.GiveNamedItem("weapon_deagle");
                 break;
             case AutoSniperEffectName:
-                ClearInventoryExceptBomb(player);
+                player.RemoveWeapons();
                 player.GiveNamedItem("weapon_knife");
                 player.GiveNamedItem(AutoSniperPool[Random.Shared.Next(AutoSniperPool.Length)]);
                 break;
             case GodsOfThunderEffectName:
-                ClearInventoryExceptBomb(player);
+                player.RemoveWeapons();
                 player.GiveNamedItem("weapon_taser");
                 break;
         }
@@ -1941,7 +1920,7 @@ public class RandomGameRounds : BasePlugin
             return;
         }
 
-        ClearInventoryExceptBomb(player);
+        player.RemoveWeapons();
         player.GiveNamedItem("weapon_knife");
         // Each player gets AWP or Scout - one shot, one kill
         var sniper = Random.Shared.Next(2) == 0 ? "weapon_awp" : "weapon_ssg08";
