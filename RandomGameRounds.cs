@@ -557,16 +557,20 @@ public class RandomGameRounds : BasePlugin
                 foreach (var p in Utilities.GetPlayers().Where(p => p.PawnIsAlive))
                 {
                     var pawn = p.PlayerPawn.Value;
-                    if (pawn == null) continue;
+                    
+                    // Access the CameraServices component
+                    var cameraServices = pawn?.CameraServices;
+                    if (cameraServices == null) continue;
             
                     Random rnd = new();
+                    float intensity = 1.5f;
+            
+                    // Use the property name from your schema: CsViewPunchAngle
+                    cameraServices.CsViewPunchAngle.X += (float)(rnd.NextDouble() * intensity * 2 - intensity);
+                    cameraServices.CsViewPunchAngle.Y += (float)(rnd.NextDouble() * intensity * 2 - intensity);
                     
-                    // Use the networked member name 'm_pViewPunchAngle'
-                    pawn.m_pViewPunchAngle.X += (float)(rnd.NextDouble() * 2.0 - 1.0);
-                    pawn.m_pViewPunchAngle.Y += (float)(rnd.NextDouble() * 2.0 - 1.0);
-                    
-                    // This line tells the server to send the update to the player's game client
-                    Utilities.SetStateChanged(pawn, "CBasePlayerPawn", "m_pViewPunchAngle");
+                    // Inform the engine that the CameraServices state has changed
+                    Utilities.SetStateChanged(pawn!, "CBasePlayerPawn", "m_pCameraServices");
                 }
             }, TimerFlags.REPEAT);
         }
