@@ -66,6 +66,9 @@ public class RandomGameRounds : BasePlugin
     private static bool _oneTapActive;
     private static bool _clumsyActive;
 
+    private CounterStrikeSharp.API.Modules.Timers.Timer? _bombShuffleTimer;
+    private CounterStrikeSharp.API.Modules.Timers.Timer? _nuclearShakeTimer;
+
     private static readonly string[] LoadoutEffects =
     {
         KnifeOnlyEffectName,
@@ -556,10 +559,13 @@ public class RandomGameRounds : BasePlugin
                 {
                     var pawn = p.PlayerPawn.Value;
                     if (pawn == null) continue;
-        
+            
                     Random rnd = new();
-                    pawn.ViewPunchAngle.X += (float)(rnd.NextDouble() * 2.0 - 1.0);
-                    pawn.ViewPunchAngle.Y += (float)(rnd.NextDouble() * 2.0 - 1.0);
+                    // Accessing via the BaseEntity
+                    pawn.BaseEntity.ViewPunchAngle.X += (float)(rnd.NextDouble() * 2.0 - 1.0);
+                    pawn.BaseEntity.ViewPunchAngle.Y += (float)(rnd.NextDouble() * 2.0 - 1.0);
+                    
+                    // Notify the client that the angle has changed
                     Utilities.SetStateChanged(pawn, "CBasePlayerPawn", "m_pViewPunchAngle");
                 }
             }, TimerFlags.REPEAT);
@@ -644,8 +650,7 @@ public class RandomGameRounds : BasePlugin
 
         if (selectedEffects.Contains(GodsOfThunderEffectName))
         {
-            var player = @event.Userid;
-            if (player != null && player.IsValid && player.PawnIsAlive)
+            foreach (var player in Utilities.GetPlayers())
             {
                 player.GiveNamedItem("weapon_taser");
             }
