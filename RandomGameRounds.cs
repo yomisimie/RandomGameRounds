@@ -66,7 +66,6 @@ public class RandomGameRounds : BasePlugin
     private static bool _oneTapActive;
     private static bool _clumsyActive;
 
-    private CounterStrikeSharp.API.Modules.Timers.Timer? _bombShuffleTimer;
     private CounterStrikeSharp.API.Modules.Timers.Timer? _nuclearShakeTimer;
 
     private static readonly string[] LoadoutEffects =
@@ -561,11 +560,12 @@ public class RandomGameRounds : BasePlugin
                     if (pawn == null) continue;
             
                     Random rnd = new();
-                    // Accessing via the BaseEntity
-                    pawn.BaseEntity.ViewPunchAngle.X += (float)(rnd.NextDouble() * 2.0 - 1.0);
-                    pawn.BaseEntity.ViewPunchAngle.Y += (float)(rnd.NextDouble() * 2.0 - 1.0);
                     
-                    // Notify the client that the angle has changed
+                    // Use the networked member name 'm_pViewPunchAngle'
+                    pawn.m_pViewPunchAngle.X += (float)(rnd.NextDouble() * 2.0 - 1.0);
+                    pawn.m_pViewPunchAngle.Y += (float)(rnd.NextDouble() * 2.0 - 1.0);
+                    
+                    // This line tells the server to send the update to the player's game client
                     Utilities.SetStateChanged(pawn, "CBasePlayerPawn", "m_pViewPunchAngle");
                 }
             }, TimerFlags.REPEAT);
