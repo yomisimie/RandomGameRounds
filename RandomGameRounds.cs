@@ -487,10 +487,7 @@ public class RandomGameRounds : BasePlugin
             // 1. Cleanup old round state
             _nuclearShakeTimer?.Kill();
             _nuclearShakeTimer = null;
-            
-            // Always reset fog at round start so it doesn't bleed into non-fog rounds
-            ResetMapFog();
-            
+                        
             if (ActiveEffects.Contains(NoArmorEffectName))
             {
                 ApplyNoArmor();
@@ -1271,30 +1268,38 @@ public class RandomGameRounds : BasePlugin
 
     private static void ApplyPlantEffects(RandomGameRounds plugin)
     {
-        // 1. Find the actual CFogController entity on the map
-        var fogController = Utilities.FindAllEntitiesByDesignerName<CFogController>("env_fog_controller").FirstOrDefault();
-    
-        if (fogController != null)
-        {
-            // 2. Access the 'Fog' (fogparams_t) struct
-            // Note: Because it's a DeclaredClass, we modify the properties within it
-            fogController.Fog.Enable = true;
-            fogController.Fog.Start = 0.0f;
-            fogController.Fog.End = 600.0f;
-            fogController.Fog.MaxDensity = 1.0f;
+        // Heal Ts
+        if (ActiveEffects.Contains(HealingC4EffectName)) {
+            foreach (var player in Utilities.GetPlayers().Where(p => p.TeamNum == 2 && p.PawnIsAlive))
+            {
+                player.PawnHealth = 100;
+                Utilities.SetStateChanged(player.PlayerPawn.Value!, "CBaseEntity", "m_iHealth");
+            }
+        }
+        // Nuclear Proximity for all
+        if (ActiveEffects.Contains(NuclearC4EffectName)) {
+            _nuclearShakeTimer?.Kill();
+            _nuclearShakeTimer = plugin.AddTimer(0.2f, () => 
+            {
+                foreach (var p in Utilities.GetPlayers().Where(p => p.PawnIsAlive))
+                {
+                    var pawn = p.PlayerPawn.Value;
+                    
+                    // Access the CameraServices component
+                    var cameraServices = pawn?.CameraServices;
+                    if (cameraServices == null) continue;
             
-            // Use the color we want (Silent Hill Gray)
-            fogController.Fog.Color = System.Drawing.Color.FromArgb(255, 180, 180, 180);
-    
-            // 3. CRITICAL: The engine needs to know the variables changed
-            // You'll notice the 'm_iChangedVariables' in your snippet—the engine uses this 
-            // as a bitmask to know which fog parts to re-render.
-            fogController.ChangedVariables = -1; // -1 sets all bits to 'true' (everything changed)
-    
-            // 4. Send the update to all players
-            Utilities.SetStateChanged(fogController, "CFogController", "m_fog");
+                    Random rnd = new();
+                    float intensity = 1.5f;
             
-            Server.PrintToChatAll(" [\x02! \x01] A thick mist begins to rise...");
+                    // Use the property name from your schema: CsViewPunchAngle
+                    cameraServices.CsViewPunchAngle.X += (float)(rnd.NextDouble() * intensity * 2 - intensity);
+                    cameraServices.CsViewPunchAngle.Y += (float)(rnd.NextDouble() * intensity * 2 - intensity);
+                    
+                    // Inform the engine that the CameraServices state has changed
+                    Utilities.SetStateChanged(pawn!, "CBasePlayerPawn", "m_pCameraServices");
+                }
+            }, TimerFlags.REPEAT);
         }
     }
 
