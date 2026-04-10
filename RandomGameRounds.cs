@@ -1270,7 +1270,7 @@ public class RandomGameRounds : BasePlugin
         return false;
     }
 
-    private static void ApplyPlantEffects(RandomGameRounds plugin)
+    private static void ApplySilentHillFog(RandomGameRounds plugin)
     {
         var fogController = Utilities.FindAllEntitiesByDesignerName<CFogController>("env_fog_controller").FirstOrDefault();
     
