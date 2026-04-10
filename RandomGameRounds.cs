@@ -329,8 +329,7 @@ public class RandomGameRounds : BasePlugin
                 
                 if (shooter != null && shooter.IsValid && shooter.PawnIsAlive)
                 {
-                    shooter.RemoveWeapons();
-                    shooter.GiveNamedItem("weapon_taser");
+                    ReloadTaser(shooter);
                 }
             }
         
@@ -1260,6 +1259,32 @@ public class RandomGameRounds : BasePlugin
         }
 
         return false;
+    }
+
+    public void ReloadTaser(CCSPlayerController player)
+    {
+        if (player.PlayerPawn.Value == null || player.PlayerPawn.Value.WeaponServices == null) return;
+    
+        // 1. Loop through player weapons to find the Taser
+        foreach (var weaponHandle in player.PlayerPawn.Value.WeaponServices.MyWeapons)
+        {
+            var weapon = weaponHandle.Value;
+            if (weapon == null || weapon.DesignerName != "weapon_taser") continue;
+    
+            // 2. Cast to the Taser class (or use NativeValue if class is missing)
+            // We reset the clip to 1
+            weapon.SetNativeValue("m_iClip1", 1);
+            
+            // 3. For CS2, you often need to reset the 'recharge' time 
+            // so it doesn't think it's still spent.
+            weapon.SetNativeValue("m_flPostponeFireReadyTime", 0.0f);
+    
+            // 4. Sync the change to the client
+            Utilities.SetStateChanged(weapon, "CBasePlayerWeapon", "m_iClip1");
+            
+            player.PrintToChat(" [\x04Taser\x01] Your Zeus has been recharged!");
+            break;
+        }
     }
 
     private static void ApplyPlantEffects(RandomGameRounds plugin)
