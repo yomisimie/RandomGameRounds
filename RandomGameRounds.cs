@@ -67,7 +67,7 @@ public class RandomGameRounds : BasePlugin
     private static bool _oneTapActive;
     private static bool _clumsyActive;
 
-    private CounterStrikeSharp.API.Modules.Timers.Timer? _nuclearShakeTimer;
+    private static CounterStrikeSharp.API.Modules.Timers.Timer? _nuclearShakeTimer;
 
     private static readonly string[] LoadoutEffects =
     {
