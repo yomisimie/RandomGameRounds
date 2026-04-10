@@ -555,40 +555,40 @@ public class RandomGameRounds : BasePlugin
 
     private void ApplySilentHillFog()
     {
-        foreach (var player in Utilities.GetPlayers().Where(p => p.PawnIsAlive))
+        // Find all CPointCamera entities using the designer name
+        var cameras = Utilities.FindAllEntitiesByDesignerName<CPointCamera>("point_camera");
+    
+        foreach (var camera in cameras)
         {
-            var pawn = player.PlayerPawn.Value;
-            
-            // CPlayer_CameraServices contains the Fog properties you found
-            var cameraServices = pawn?.CameraServices;
-            if (cameraServices == null) continue;
+            if (camera == null || !camera.IsValid) continue;
     
-            // Applying the schema members found in CPointCamera/CameraServices
-            cameraServices.FogEnable = true;
-            cameraServices.FogStart = 0.0f;
-            cameraServices.FogEnd = 600.0f; // Everything past 600 units is gray
-            cameraServices.FogMaxDensity = 1.0f;
-            
-            // Misty Grey Color
-            cameraServices.FogColor = System.Drawing.Color.FromArgb(255, 180, 180, 180);
+            // Using the properties from the class definition you provided
+            camera.FogEnable = true;
+            camera.FogStart = 0.0f;
+            camera.FogEnd = 600.0f;
+            camera.FogMaxDensity = 1.0f;
+            camera.FogColor = System.Drawing.Color.FromArgb(255, 180, 180, 180);
+            camera.Active = true; // Ensure the camera is actually processing
     
-            // Sync the changes from Server to Client
-            Utilities.SetStateChanged(pawn!, "CBasePlayerPawn", "m_pCameraServices");
+            // Notify the engine of the specific schema changes
+            Utilities.SetStateChanged(camera, "CPointCamera", "m_bFogEnable");
+            Utilities.SetStateChanged(camera, "CPointCamera", "m_flFogStart");
+            Utilities.SetStateChanged(camera, "CPointCamera", "m_flFogEnd");
         }
-    
-        Server.PrintToChatAll(" [\x02! \x01] Fog has consumed the map. Stay close.");
     }
     
-    private void ResetMapFog()
+    private void ResetCPointFog()
     {
-        foreach (var player in Utilities.GetPlayers())
+        var cameras = Utilities.FindAllEntitiesByDesignerName<CPointCamera>("point_camera");
+    
+        foreach (var camera in cameras)
         {
-            var cameraServices = player.PlayerPawn.Value?.CameraServices;
-            if (cameraServices != null)
-            {
-                cameraServices.FogEnable = false;
-                Utilities.SetStateChanged(player.PlayerPawn.Value!, "CBasePlayerPawn", "m_pCameraServices");
-            }
+            if (camera == null || !camera.IsValid) continue;
+    
+            // Disable the override
+            camera.FogEnable = false;
+            
+            Utilities.SetStateChanged(camera, "CPointCamera", "m_bFogEnable");
         }
     }
 
