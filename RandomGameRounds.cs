@@ -1270,27 +1270,28 @@ public class RandomGameRounds : BasePlugin
         return false;
     }
 
-    private static void ApplySilentHillFog()
+    private static void ApplyPlantEffects(RandomGameRounds plugin)
     {
-        // Find all CPointCamera entities using the designer name
-        var cameras = Utilities.FindAllEntitiesByDesignerName<CPointCamera>("point_camera");
+        var fogController = Utilities.FindAllEntitiesByDesignerName<CFogController>("env_fog_controller").FirstOrDefault();
     
-        foreach (var camera in cameras)
+        if (fogController != null)
         {
-            if (camera == null || !camera.IsValid) continue;
+            // Access the nested struct
+            var fog = fogController.Fog;
     
-            // Using the properties from the class definition you provided
-            camera.FogEnable = true;
-            camera.FogStart = 0.0f;
-            camera.FogEnd = 600.0f;
-            camera.FogMaxDensity = 1.0f;
-            camera.FogColor = System.Drawing.Color.FromArgb(255, 180, 180, 180);
-            camera.Active = true; // Ensure the camera is actually processing
+            // Use the 'm_fl' and 'm_b' prefixes found in the engine schema
+            fog.m_bEnable = true;
+            fog.m_flStart = 0.0f;
+            fog.m_flEnd = 600.0f;
+            fog.m_flMaxDensity = 1.0f; 
+            fog.m_Color = System.Drawing.Color.FromArgb(255, 180, 180, 180);
     
-            // Notify the engine of the specific schema changes
-            Utilities.SetStateChanged(camera, "CPointCamera", "m_bFogEnable");
-            Utilities.SetStateChanged(camera, "CPointCamera", "m_flFogStart");
-            Utilities.SetStateChanged(camera, "CPointCamera", "m_flFogEnd");
+            // Tell the controller which variables changed (bitmask)
+            // -1 covers all variables in the struct
+            fogController.ChangedVariables = -1; 
+    
+            // Network the change
+            Utilities.SetStateChanged(fogController, "CFogController", "m_fog");
         }
     }
     
