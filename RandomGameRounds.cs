@@ -45,6 +45,7 @@ public class RandomGameRounds : BasePlugin
     private const string ClumsyEffectName = "Clumsy";
     private const string HealingC4EffectName = "Healing C4";
     private const string NuclearC4EffectName = "Nuclear Proximity";
+    private const string SilentHillEffectName = "Silent Hill";
     private const int ClumsyDropChancePercent = 8;
     private const float DefaultMovementMultiplier = 1.0f;
     private const float SlowMovementMultiplier = 0.45f;
@@ -248,6 +249,7 @@ public class RandomGameRounds : BasePlugin
         AddCommand("css_effect_healc4",      "Force Healing C4 modifier for current round",           (_, cmd) => ForceEffects(cmd, HealingC4EffectName));
         AddCommand("css_effect_nuclearc4",   "Force Nuclear proximity modifier for current round",    (_, cmd) => ForceEffects(cmd, NuclearC4EffectName));
         AddCommand("css_effect_thunder",     "Force Gods of Thunder modifier for current round",      (_, cmd) => ForceEffects(cmd, GodsOfThunderEffectName));
+        AddCommand("css_effect_fog",         "Force Silent Hill modifier for current round",          (_, cmd) => ForceEffects(cmd, SilentHillEffectName));
         AddCommand("css_effect_rules",       "Show effect compatibility rules",                       ShowEffectRulesCommand);
         AddCommand("css_effect_clear",       "Clear active forced effect state",                      ClearEffectCommand);
 
@@ -484,8 +486,13 @@ public class RandomGameRounds : BasePlugin
 
         RegisterEventHandler<EventRoundStart>((@event, info) =>
         {
+            // 1. Cleanup old round state
             _nuclearShakeTimer?.Kill();
             _nuclearShakeTimer = null;
+            
+            // Always reset fog at round start so it doesn't bleed into non-fog rounds
+            ResetMapFog();
+            
             if (ActiveEffects.Contains(NoArmorEffectName))
             {
                 ApplyNoArmor();
@@ -503,6 +510,12 @@ public class RandomGameRounds : BasePlugin
             }
 
             TriggerRandomRoundEffect("round_start_fallback");
+            // 2. Check if Silent Hill was just picked by TriggerRandomRoundEffect
+            if (ActiveEffects.Contains(SilentHillEffectName))
+            {
+                ApplySilentHillFog();
+            }
+            
             // Give the bomb after a tiny delay to ensure players have spawned
             AddTimer(0.5f, () => {
                 GiveBombToRandomT();
@@ -538,6 +551,35 @@ public class RandomGameRounds : BasePlugin
             ApplyPlantEffects();
             return HookResult.Continue;
         });
+    }
+
+    private void ApplySilentHillFog()
+    {
+        var fogController = Utilities.FindAllEntitiesByDesignerName<CFogController>("env_fog_controller").FirstOrDefault();
+    
+        if (fogController != null)
+        {
+            fogController.m_fog.Enable = true;
+            fogController.m_fog.Start = 0.0f;
+            fogController.m_fog.End = 600.0f; // Very short distance for that "Silent Hill" feel
+            fogController.m_fog.Maxdensity = 1.0f; // Fully opaque at the 'End' distance
+            
+            // Classic Gray/White fog
+            fogController.m_fog.Color = System.Drawing.Color.FromArgb(255, 180, 180, 180);
+    
+            Utilities.SetStateChanged(fogController, "CFogController", "m_fog");
+        }
+    }
+    
+    private void ResetMapFog()
+    {
+        var fogController = Utilities.FindAllEntitiesByDesignerName<CFogController>("env_fog_controller").FirstOrDefault();
+        if (fogController != null)
+        {
+            // Disable the override
+            fogController.m_fog.Enable = false;
+            Utilities.SetStateChanged(fogController, "CFogController", "m_fog");
+        }
     }
 
     private void ApplyPlantEffects()
