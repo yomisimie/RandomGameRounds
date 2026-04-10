@@ -789,26 +789,32 @@ public class RandomGameRounds : BasePlugin
                 break;
         }
     }
-
-    public static void ClearInventoryExceptBomb(CCSPlayerController player)
+    
+    public static void ClearInventoryExceptBomb(CCSPlayerController? player)
     {
-        var pawn = player.PlayerPawn.Value;
-        if (pawn?.WeaponServices == null) return;
+        // Safety check: ensure player exists and is still connected
+        if (player == null || !player.IsValid) return;
     
-        // Use ToList() to avoid "Collection Modified" errors
-        foreach (var handle in pawn.WeaponServices.MyWeapons.ToList())
+        Server.NextFrame(() => 
         {
-            if (handle == null || !handle.IsValid || handle.Value == null) continue;
-    
-            var weapon = handle.Value;
-    
-            // SKIP the bomb
-            if (weapon.DesignerName == "weapon_c4") 
-                continue;
-    
-            // Remove everything else (Knife, Taser, Pistols, etc)
-            weapon.Remove();
-        }
+            var pawn = player.PlayerPawn.Value;
+            if (pawn?.WeaponServices == null) return;
+        
+            // ToList() is crucial here to prevent the "Collection Modified" crash
+            foreach (var handle in pawn.WeaponServices.MyWeapons.ToList())
+            {
+                if (handle == null || !handle.IsValid || handle.Value == null) continue;
+        
+                var weapon = handle.Value;
+        
+                // Skip the bomb
+                if (weapon.DesignerName == "weapon_c4") 
+                    continue;
+        
+                // Remove everything else (Knife, Taser, Pistols, etc)
+                weapon.Remove();
+            }
+        }); // This was the missing closing bracket/paren
     }
 
     private static void ApplyGodsOfThunder()
