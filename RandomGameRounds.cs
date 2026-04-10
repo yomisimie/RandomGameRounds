@@ -549,7 +549,7 @@ public class RandomGameRounds : BasePlugin
 
         RegisterEventHandler<EventBombPlanted>((@event, info) =>
         {
-            ApplyPlantEffects();
+            ApplyPlantEffects(this);
             return HookResult.Continue;
         });
     }
@@ -1309,7 +1309,7 @@ public class RandomGameRounds : BasePlugin
         }
     }
 
-    private static void ApplyPlantEffects()
+    private static void ApplyPlantEffects(RandomGameRounds plugin)
     {
         // Heal Ts
         if (ActiveEffects.Contains(HealingC4EffectName)) {
@@ -1321,7 +1321,8 @@ public class RandomGameRounds : BasePlugin
         }
         // Nuclear Proximity for all
         if (ActiveEffects.Contains(NuclearC4EffectName)) {
-            _nuclearShakeTimer = AddTimer(0.2f, () => 
+            plugin._nuclearShakeTimer?.Kill();
+            plugin._nuclearShakeTimer = plugin.AddTimer(0.2f, () => 
             {
                 foreach (var p in Utilities.GetPlayers().Where(p => p.PawnIsAlive))
                 {
