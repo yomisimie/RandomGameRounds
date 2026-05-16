@@ -365,7 +365,8 @@ public class RandomGameRounds : BasePlugin
                 name.Contains("molotov", StringComparison.OrdinalIgnoreCase) ||
                 name.Contains("decoy", StringComparison.OrdinalIgnoreCase) ||
                 name.Contains("flashbang", StringComparison.OrdinalIgnoreCase) ||
-                name.Contains("smoke", StringComparison.OrdinalIgnoreCase))
+                name.Contains("smoke", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(name, "weapon_c4", StringComparison.OrdinalIgnoreCase))
             {
                 return HookResult.Continue;
             }
@@ -1352,11 +1353,32 @@ public class RandomGameRounds : BasePlugin
             return;
         }
 
+        var protectedAmmoSlots = new HashSet<int>();
+
         foreach (var weaponHandle in weaponServices.MyWeapons)
         {
             var weapon = weaponHandle.Value;
             if (weapon == null || !weapon.IsValid)
             {
+                continue;
+            }
+
+            var weaponName = weapon.DesignerName ?? string.Empty;
+            if (string.Equals(weaponName, "weapon_c4", StringComparison.OrdinalIgnoreCase))
+            {
+                var primaryAmmoType = TryGetIntProperty(weapon, "PrimaryAmmoType");
+                var secondaryAmmoType = TryGetIntProperty(weapon, "SecondaryAmmoType");
+
+                if (primaryAmmoType.HasValue && primaryAmmoType.Value >= 0)
+                {
+                    protectedAmmoSlots.Add(primaryAmmoType.Value);
+                }
+
+                if (secondaryAmmoType.HasValue && secondaryAmmoType.Value >= 0)
+                {
+                    protectedAmmoSlots.Add(secondaryAmmoType.Value);
+                }
+
                 continue;
             }
 
@@ -1384,15 +1406,17 @@ public class RandomGameRounds : BasePlugin
             var servicesAmmo = weaponServices.Ammo;
             for (var index = 0; index < servicesAmmo.Length; index++)
             {
+                if (protectedAmmoSlots.Contains(index))
+                {
+                    continue;
+                }
+
                 servicesAmmo[index] = 0;
             }
         }
         catch
         {
         }
-
-        TryZeroReserveAmmoDirect(weaponServices);
-        ApplyLowAmmoToReservePools(weaponServices);
     }
 
     private static void ApplyLowAmmoToReservePools(object ammoOwner)
@@ -1688,7 +1712,8 @@ public class RandomGameRounds : BasePlugin
                 name.Contains("molotov", StringComparison.OrdinalIgnoreCase) ||
                 name.Contains("decoy", StringComparison.OrdinalIgnoreCase) ||
                 name.Contains("flashbang", StringComparison.OrdinalIgnoreCase) ||
-                name.Contains("smoke", StringComparison.OrdinalIgnoreCase))
+                name.Contains("smoke", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(name, "weapon_c4", StringComparison.OrdinalIgnoreCase))
             {
                 continue;
             }
